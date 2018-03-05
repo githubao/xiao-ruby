@@ -58,16 +58,19 @@ def step3
 
 end
 
+# 问号结尾的方法都会返回 true/false
+# $0 表示运行脚本的第一个变量 依次类推
+# 不可变字符，能用单引号的地方，都用单引号。#{} 类似符号替换的，使用双引号
 class MegaGreeter
   attr_accessor :names
 
-  def initialize(names = "world")
+  def initialize(names = 'world')
     @names = names
   end
 
   def say_hi
     if @names.nil?
-      puts "..."
+      puts '...'
     elsif @names.respond_to?('each')
       @names.each do |name|
         puts "Hello #{name}!"
