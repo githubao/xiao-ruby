@@ -60,13 +60,39 @@ def step7
   puts dic
 end
 
+def step8
+  s = 'abc'
+  s.freeze
+  # s[2] = 'd'
+  puts s
+end
+
+# 除了nil，都是true
+def step9
+  s = ''
+  if s
+    print 'true'
+  else
+    print 'false'
+  end
+end
+
+def step10
+  s = [1, 2, 3]
+  p s
+  puts s
+end
+
 def main
   # step1
   # step2
   # step4
   # step5
   # step6
-  step7
+  # step7
+  # step8
+  # step9
+  step10
 end
 
 main if $PROGRAM_NAME == __FILE__
