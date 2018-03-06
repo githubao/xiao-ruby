@@ -25,8 +25,9 @@ end
 
 # step3
 
+# 符号对象 :name 前面加上冒号保证id值的唯一
+# 实例变量 @name，类变量 @@name
 class Greeting
-
   attr_accessor :name
 
   def initialize(name)
@@ -42,8 +43,6 @@ class Greeting
   end
 end
 
-# 符号对象 :name 前面加上冒号保证id值的唯一
-# 实例变量 @name，类变量 @@name
 def step3
   greet = Greeting.new('xiaobao')
   # greet.say_hi
@@ -82,8 +81,8 @@ class MegaGreeter
 
   def say_bye
     if @names.nil?
-      puts "..."
-    elsif @names.respond_to?("join")
+      puts '...'
+    elsif @names.respond_to?('join')
       puts "GoodBye #{@names.join(', ')}. Come back soon!"
     else
       puts "GoodBye #{@names}. Come back soon!"
@@ -92,17 +91,25 @@ class MegaGreeter
 
 end
 
+def current_file?
+  return true if $PROGRAM_NAME == __FILE__
+  false
+end
+
 def step4
-  if __FILE__ == $0
-    mg = MegaGreeter.new
-    mg.say_hi
-    mg.say_bye
-
-    mg.names = ['xiaobao', 'xiaoyu']
-    mg.say_hi
-    mg.say_bye
-
+  # $0 = $PROGRAM_NAME
+  if $PROGRAM_NAME != __FILE__
+    return
   end
+
+  mg = MegaGreeter.new
+  mg.say_hi
+  mg.say_bye
+
+  mg.names = %w[xiaobao xiaoyu]
+  mg.say_hi
+  mg.say_bye
+
 end
 
 def main
