@@ -27,6 +27,7 @@ end
 
 # 符号对象 :name 前面加上冒号保证id值的唯一
 # 实例变量 @name，类变量 @@name
+# 全局变量 $name
 class Greeting
   attr_accessor :name
 
