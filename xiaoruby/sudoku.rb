@@ -2,7 +2,16 @@
 
 # create by xiaobao at 18:10 2018/3/6
 
+require 'set'
 
+# 数独的解法：
+# 寻找所有没有填写的方块，哪个只有一种可能性就直接填写进去。
+# 如果没有一种可能性的情况，就找到可能性最小的情况，先填写进去然后再填写其他的
+# 如果推出矛盾，那么再试验其他的情况
+#
+# 数独的个数：
+# 将旋转，对称，数字映像等操作得出的结果都视为同一个的情况下，共5472730538个。
+#
 module Sudoku
   class Puzzle
     ASCII = '.123456789'.freeze
@@ -19,9 +28,8 @@ module Sudoku
 
       raise Invalid, 'Grid is the wrong size' unless s.size == 81
 
-      if i = s.index(/[^123456789\.]/)
-        raise Invalid, "Illegal character #{s[i, 1]} in puzzle"
-      end
+      i = s.index(/[^123456789.]/)
+      raise Invalid, "Illegal character #{s[i, 1]} in puzzle" if i
 
       s.tr!(ASCII, BIN)
 
@@ -38,7 +46,12 @@ module Sudoku
     def pretty_print
       arr = to_s.split('\n')
       puts "#{'*' * 3} sln #{'*' * 3}"
-      arr.each {|s| puts "#{s[0..2]} #{s[3..5]} #{s[6..8]}"}
+
+      arr.each_with_index do |s, idx|
+        puts if (idx % 3).zero? && idx != 0
+        puts "#{s[0..2]} #{s[3..5]} #{s[6..8]}"
+      end
+
       puts "#{'*' * 3} sln #{'*' * 3}"
     end
 
@@ -48,14 +61,13 @@ module Sudoku
       copy
     end
 
-    def [](row, col)
-      @grid[row * 9 + col]
-    end
+    #
+    # def [](row, col)
+    #   @grid[row * 9 + col]
+    # end
 
     def []=(row, col, new_val)
-      unless (0..9).include? new_val
-        raise Invalid, 'Illegal cell value'
-      end
+      raise Invalid, 'Illegal cell value' unless (0..9).cover? new_val
       @grid[row * 9 + col] = new_val
     end
 
@@ -92,16 +104,17 @@ module Sudoku
     private
 
     def rowdigits(row)
+      # puts "flag: #{@grid[row * 9, 9]}"
       @grid[row * 9, 9] - [0]
     end
 
     def coldigits(col)
       result = []
 
-      col.step(80, 9) {|i|
+      col.step(80, 9) do |i|
         v = @grid[i]
         result << v if v != 0
-      }
+      end
       result
     end
 
@@ -142,7 +155,9 @@ module Sudoku
           else
             if unchanged && p.size < min
               min = p.size
-              rmin, cmin, pmin = row, col, p
+              rmin = row
+              cmin = col
+              pmin = p
             end
         end
       end
@@ -171,7 +186,7 @@ module Sudoku
 
 end
 
-def main
+def run
   puzzle = Sudoku.solve(Sudoku::Puzzle.new(ARGF.readlines))
   puzzle.pretty_print
 end
@@ -182,14 +197,70 @@ def tmp
 end
 
 def tmp2
-  arr = [123456789, 234567891, 345678912]
+  arr = [123_456_789, 234_567_891, 345_678_912]
   arr2 = arr.map(&:to_s)
   arr2.each {|s| printf('%s %s %s\n', s[0..2], s[3..5], s[6..8])}
   # arr.each {|s| puts s.to_s[0..2]}
 end
 
+def tmp3
+  # arr = Array(0..80)
+  # puts arr.sample(4)
+  # 1000.times {puts rand(81)}
+  1000.times {puts rand(0..80)}
+end
+
+def generate
+  count = 3
+
+  File.open('C:\\Users\\xiaobao\\Desktop\\sudoku.txt', 'w') do |fw|
+    uniq = Set.new([])
+
+    count.times do
+      s = '.' * 81
+
+      # 随机数据
+      seeds = Array(1..9).sample(9)
+      idxs = Array(0..80).sample(9)
+      idxs.zip(seeds) {|idx, seed| s[idx] = seed.to_s}
+
+      # 一种解法的可能性
+      puzzle = Sudoku.solve(Sudoku::Puzzle.new(s))
+
+      # 把结果添加到set里面
+      uniq.add(puzzle.to_s.gsub!('\n', ''))
+    end
+
+    # 简单打印
+    # uniq.each {|line| fw.write("#{line}\n")}
+
+    # 按照格式打印
+    uniq.each_with_index do |line, num|
+      fw.write("\n#{'*' * 3}\t#{'%03d' % (num + 1)}\t#{'*' * 3}\n")
+      line.each_char.with_index do |char, idx|
+        fw.write("\t") if (idx % 3).zero? && idx != 0 && !(idx % 9).zero?
+        fw.write("\n") if (idx % 9).zero? && idx != 0
+        # fw.write("\n") if (idx % 27).zero? && idx != 0
+        fw.write(char.to_s)
+      end
+      fw.write("\n")
+    end
+
+    puts "#{uniq.size} sudoku generated"
+
+  end
+end
+
+def main
+  # run
+  # tmp
+  # tmp2
+  # tmp3
+  generate
+end
+
 main
-# tmp2
+
 
 # .23 4.6 ..9
 # 4.6 ... .2.
@@ -200,6 +271,16 @@ main
 # 3.5 .78 .12
 # 67. .12 3.5
 # 9.2 .45 .78
+
+# ... ... ...
+# ... ... ...
+# ... ... ...
+# ... ... ...
+# ... ... ...
+# ... ... ...
+# ... ... ...
+# ... ... ...
+# ... ... ...
 
 # 123 456 789
 # 456 789 123
