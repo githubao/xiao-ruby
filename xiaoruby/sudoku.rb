@@ -5,8 +5,8 @@
 
 module Sudoku
   class Puzzle
-    ASCII = '.123456789'
-    BIN = "\000\001\002\003\004\005\006\007\008\009"
+    ASCII = '.123456789'.freeze
+    BIN = "\000\001\002\003\004\005\006\007\010\011".freeze
 
     def initialize(lines)
       s = if lines.respond_to? :join
@@ -17,22 +17,29 @@ module Sudoku
 
       s.gsub!(/\s/, '')
 
-      raise InValid, 'Grid is the wrong size' unless s.size == 81
+      raise Invalid, 'Grid is the wrong size' unless s.size == 81
 
       if i = s.index(/[^123456789\.]/)
-        raise InValid, "Illegal character #{s[i, 1]} in puzzle"
+        raise Invalid, "Illegal character #{s[i, 1]} in puzzle"
       end
 
       s.tr!(ASCII, BIN)
 
       @grid = s.unpack('c*')
 
-      raise InValid, "Initial puzzle has duplicates" if has_duplicates?
+      raise Invalid, 'Initial puzzle has duplicates' if duplicates?
 
     end
 
     def to_s
-      (0..8).collect {|r| @grid[r * 9 + 9].pack('c9')}.join('\n').tr(BIN, ASCII)
+      (0..8).collect {|r| @grid[r * 9, 9].pack('c9')}.join('\n').tr(BIN, ASCII)
+    end
+
+    def pretty_print
+      arr = to_s.split('\n')
+      puts "#{'*' * 3} sln #{'*' * 3}"
+      arr.each {|s| puts "#{s[0..2]} #{s[3..5]} #{s[6..8]}"}
+      puts "#{'*' * 3} sln #{'*' * 3}"
     end
 
     def dup
@@ -45,8 +52,11 @@ module Sudoku
       @grid[row * 9 + col]
     end
 
-    def []=(row, col, newval)
-      @grid[row * 9 + col] = newval
+    def []=(row, col, new_val)
+      unless (0..9).include? new_val
+        raise Invalid, 'Illegal cell value'
+      end
+      @grid[row * 9 + col] = new_val
     end
 
     BoxOfIndex = [
@@ -66,7 +76,7 @@ module Sudoku
       end
     end
 
-    def has_duplicates?
+    def duplicates?
       0.upto(8) {|row| return true if rowdigits(row).uniq!}
       0.upto(8) {|col| return true if coldigits(col).uniq!}
       0.upto(8) {|box| return true if boxdigits(box).uniq!}
@@ -80,6 +90,7 @@ module Sudoku
     end
 
     private
+
     def rowdigits(row)
       @grid[row * 9, 9] - [0]
     end
@@ -94,25 +105,25 @@ module Sudoku
       result
     end
 
-    BoxToIndex = [0, 3, 6, 27, 30, 33, 34, 54, 57, 60].freeze
+    BoxToIndex = [0, 3, 6, 27, 30, 33, 54, 57, 60].freeze
 
     def boxdigits(box)
       i = BoxToIndex[box]
       [
           @grid[i], @grid[i + 1], @grid[i + 2],
           @grid[i + 9], @grid[i + 10], @grid[i + 11],
-          @grid[i + 18], @grid[i + 19], @grid[i + 20],
+          @grid[i + 18], @grid[i + 19], @grid[i + 20]
       ] - [0]
     end
   end
 
-  class InValid < StandardError
+  class Invalid < StandardError
   end
 
   class Impossible < StandardError
   end
 
-  def Sudoku.scan(puzzle)
+  def self.scan(puzzle)
     unchanged = false
 
     until unchanged
@@ -136,13 +147,13 @@ module Sudoku
         end
       end
     end
-    return rmin, cmin, pmin
+    [rmin, cmin, pmin]
   end
 
-  def Sudoku.solve(puzzle)
+  def self.solve(puzzle)
     puzzle = puzzle.dup
     r, c, p = scan(puzzle)
-    return puzzle if r == nil
+    return puzzle if r.nil?
 
     p.each do |guess|
       puzzle[r, c] = guess
@@ -159,3 +170,43 @@ module Sudoku
   end
 
 end
+
+def main
+  puzzle = Sudoku.solve(Sudoku::Puzzle.new(ARGF.readlines))
+  puzzle.pretty_print
+end
+
+def tmp
+  s = "123\n456\n789"
+  puts s.split("\n")
+end
+
+def tmp2
+  arr = [123456789, 234567891, 345678912]
+  arr2 = arr.map(&:to_s)
+  arr2.each {|s| printf('%s %s %s\n', s[0..2], s[3..5], s[6..8])}
+  # arr.each {|s| puts s.to_s[0..2]}
+end
+
+main
+# tmp2
+
+# .23 4.6 ..9
+# 4.6 ... .2.
+# 7.9 1.3 4..
+# .34 .67 8.1
+# ..7 8.1 .34
+# 8.1 ..4 5.7
+# 3.5 .78 .12
+# 67. .12 3.5
+# 9.2 .45 .78
+
+# 123 456 789
+# 456 789 123
+# 789 123 456
+# 234 567 891
+# 567 891 234
+# 891 234 567
+# 345 678 912
+# 678 912 345
+# 912 345 678
