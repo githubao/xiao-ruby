@@ -58,12 +58,27 @@ def step4
 
 end
 
+# 228 189 160 229 165 189 10 229 143 175 228 187 165
+# 你 好 \n 可 以
+# 20320 22909 10 21487 20197
+# 你好\n 可以
+def step5
+  s = "你好\n可以"
+  s.each_byte {|b| print(b,' ')}
+  puts
+  s.each_char {|c| print(c,' ')}
+  puts
+  s.each_codepoint {|p| print(p,' ')}
+  puts
+  s.each_line {|l| print(l,' ')}
+end
 
 def main
   # step1
   # step2
   # step3
-  step4
+  # step4
+  step5
 end
 
 main

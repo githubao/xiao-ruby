@@ -236,7 +236,7 @@ def generate
 
     # 按照格式打印
     uniq.each_with_index do |line, num|
-      fw.write("\n#{'*' * 3}\t#{'%03d' % (num + 1)}\t#{'*' * 3}\n")
+      fw.write("\n#{'*' * 3}\t#{format('%03d', (num + 1))}\t#{'*' * 3}\n")
       line.each_char.with_index do |char, idx|
         fw.write("\t") if (idx % 3).zero? && idx != 0 && !(idx % 9).zero?
         fw.write("\n") if (idx % 9).zero? && idx != 0
